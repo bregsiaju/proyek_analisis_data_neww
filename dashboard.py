@@ -17,18 +17,55 @@ for column in datetime_columns:
 # Sidebar
 min_date = final_df["dteday"].min()
 max_date = final_df["dteday"].max()
+seasons = final_df["season"].unique()
+weathers = final_df["weathersit"].unique()
  
+# Mapping season labels
+season_labels = {
+    1: "Musim Semi",
+    2: "Musim Panas",
+    3: "Musim Gugur",
+    4: "Musim Dingin"
+}
+
+# Mapping weather labels
+weather_labels = {
+    1: "Cerah",
+    2: "Mendung/Kabut",
+    3: "Hujan/Bersalju Ringan",
+    4: "Hujan/Bersalju Lebat"
+}
+
 with st.sidebar:
     st.image("pedalgo.png")
     
+    st.subheader("Filter Data")
     start_date, end_date = st.date_input(
-        label="Filter Rentang Waktu",min_value=min_date,
+        label="Rentang Waktu",min_value=min_date,
         max_value=max_date,
         value=[min_date, max_date]
     )
 
-main_df = final_df[(final_df["dteday"] >= str(start_date)) & 
-                (final_df["dteday"] <= str(end_date))]
+    season_options = ["Semua"] + [season_labels[s] for s in seasons]
+    weather_options = ["Semua"] + [weather_labels[w] for w in weathers]
+
+    selected_season_label = st.selectbox("Musim", season_options)
+    selected_weather_label = st.selectbox("Cuaca", weather_options)
+
+# Reverse mapping to get the original values
+selected_season = {v: k for k, v in season_labels.items()}.get(selected_season_label, None)
+selected_weather = {v: k for k, v in weather_labels.items()}.get(selected_weather_label, None)
+
+main_df = final_df[
+    (final_df["dteday"] >= str(start_date)) & 
+    (final_df["dteday"] <= str(end_date))
+]
+
+if selected_season is not None:
+    main_df = main_df[main_df["season"] == selected_season]
+
+if selected_weather is not None:
+    main_df = main_df[main_df["weathersit"] == selected_weather]
 
 st.header("PedallGo Dashboard: Bike Sharing Dataset 🚵")
 
